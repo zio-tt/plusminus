@@ -1,0 +1,102 @@
+<button id="start-button">Start</button>
+<p id="score">Score: 0</p>
+<div id="problem-container">
+  <p id="problem-text"></p>
+  <form id="answer-form">
+    <input type="number" id="answer-input">
+    <button type="submit">Enter</button>
+  </form>
+</div>
+<p id="result"></p>
+<p id="final"></p>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var problemContainer = document.getElementById('problem-container');
+    var problemTextElement = document.getElementById('problem-text');
+    var answerForm = document.getElementById('answer-form');
+    var answerInput = document.getElementById('answer-input');
+    var scoreElement = document.getElementById('score');
+    var resultElement = document.getElementById('result');
+    var finalElement = document.getElementById('final');
+    var startButton = document.getElementById('start-button');
+    var maxQuestions = 100;
+    var currentQuestion = 1;
+    var acceptingInput = false;
+    var score = 0;
+    var gameIsOver = false;
+    var correctAnswer = 0; // 正解の答えを保持する変数
+
+    startButton.addEventListener('click', function() {
+      score = 0;
+      startButton.disabled = true;
+      startButton.style.display = 'none';
+      resultElement.textContent = '';
+      finalElement.textContent = '';
+      problemContainer.style.display = 'block';
+      gameIsOver = false;
+      generateProblem();
+      answerInput.focus(); // 入力フォームにフォーカスを移動
+    });
+
+    function generateProblem() {
+      problemTextElement.textContent = '';
+      answerInput.value = '';
+      acceptingInput = false;
+
+      var num1 = Math.floor(Math.random() * 90) + 10; // 2桁の整数
+      var num2 = Math.floor(Math.random() * 90) + 10; // 2桁の整数
+      var operators = ['+', '-'];
+      var operator = operators[Math.floor(Math.random() * operators.length)];
+      if (operator === '-' && num1 < num2) {
+        [num1, num2] = [num2, num1]; // num1とnum2を入れ替える
+      }
+      var problemText = 'Q' + currentQuestion + ' : ' + num1 + ' ' + operator + ' ' + num2;
+      correctAnswer = eval(problemText); // 正解の答えを保持
+
+      setTimeout(function() {
+        resultElement.textContent = '';
+        problemTextElement.textContent = problemText;
+        acceptingInput = true;
+      }, 500);
+
+      answerForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        if (!gameIsOver && acceptingInput) {
+          var userAnswer = parseInt(answerInput.value);
+          if (userAnswer === correctAnswer) {
+            updateScoreAndResult(1);
+            resultElement.textContent = 'Correct!';
+          } else {
+            updateScoreAndResult(0);
+            gameIsOver = true;
+            resultElement.textContent = 'Incorrect! The correct answer was ' + correctAnswer;
+          }
+
+          acceptingInput = false;
+          setTimeout(function() {
+            currentQuestion += 1;
+            if (!gameIsOver && currentQuestion <= maxQuestions) {
+              generateProblem();
+            } else {
+              var message = score >= 100 ? "Congratulations!" : "Game Over!";
+              finalElement.textContent = message;
+              startButton.disabled = false;
+              problemContainer.style.display = 'none';
+              startButton.textContent = 'Reset';
+              startButton.style.display = 'block';
+            }
+          }, 500);
+        }
+      });
+    }
+
+    function updateScoreAndResult(result) {
+      score += result;
+      if (score < 0) {
+        score = 0;
+      }
+      scoreElement.textContent = 'Score: ' + score;
+    }
+  });
+</script>

@@ -1,0 +1,93 @@
+<p id="result"></p>
+<button id="start-button">Start</button>
+<p id="score">Score: 0</p>
+<h1><div id="signal"></div></h1>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var signalElement = document.getElementById('signal');
+    var scoreElement = document.getElementById('score');
+    var resultElement = document.getElementById('result');
+    var startButton = document.getElementById('start-button');
+    var currentElement = '';
+    var maxQuestions = 100;
+    var currentQuestion = 1;
+    var acceptingInput = false;
+    var score = 0;
+    var lastInputTime = 0;
+    var gameIsOver = false;
+
+    startButton.addEventListener('click', function() {
+      score = 0;
+      currentQuestion = 1;
+      startButton.disabled = true;
+      resultElement.textContent = '';
+      gameIsOver = false; // ゲームオーバー状態をリセット
+      generateSignal();
+    });
+
+    function generateSignal() {
+      signalElement.textContent = '';
+      acceptingInput = false;
+
+      var randomDelay = Math.floor(Math.random() * 500) + 500;
+      var randomText = Math.floor(Math.random() * 50) + 450;
+      var currentRandomSignal = getRandomArrow();
+      currentElement = currentRandomSignal;
+      setTimeout(function() {
+        signalElement.textContent = currentRandomSignal;
+        acceptingInput = true;
+        setTimeout(function() {
+          signalElement.textContent = '';
+          lastInputTime = new Date().getTime();
+        }, randomText);
+      }, randomDelay);
+    }
+
+    function getRandomArrow() {
+      var arrows = ['↑', '←', '↓', '→'];
+      return arrows[Math.floor(Math.random() * arrows.length)];
+    }
+
+    function updateScoreAndResult(result) {
+      score += result;
+      if (score < 0) {
+        score = 0;
+      }
+      scoreElement.textContent = 'Score: ' + score; // スコアの表示を更新
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (!gameIsOver && acceptingInput && new Date().getTime() - lastInputTime >= 1) {
+        var keyMapping = {
+          'ArrowUp': '↑',
+          'ArrowLeft': '←',
+          'ArrowDown': '↓',
+          'ArrowRight': '→'
+        };
+
+        var userSignal = keyMapping[event.key];
+
+        if (userSignal === currentElement) {
+          updateScoreAndResult(1);
+          resultElement.textContent = 'Success!';
+        } else {
+          updateScoreAndResult(-1);
+          gameIsOver = true; // ゲームオーバー状態に変更
+        }
+
+        acceptingInput = false;
+        setTimeout(function() {
+          currentQuestion += 1;
+          if (!gameIsOver && currentQuestion <= maxQuestions) {
+            generateSignal();
+          } else {
+            var message = score >= 100 ? "Congratulations!" : "Game Over!";
+            resultElement.textContent = message;
+            startButton.disabled = false;
+          }
+        }, 500);
+      }
+    });
+  });
+</script>
